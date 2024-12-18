@@ -1,0 +1,67 @@
+---
+title: "EXAMEN_PROGRAMMATION _STATISTIQUE"
+author: "Habibath BELLO"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+### 1- Ecrivons une fonction dans R qui lit les 60 fichiers csv avec les données de ventes du FXD JET 100 entre 2020-01-01 et 2024-12-31 
+
+
+
+```{r,warning=FALSE,message=FALSE}
+library(dplyr)
+library(lubridate)
+compile <- function(donnée, start_date = "2020-01-01", end_date = "2024-12-31") {
+  
+  fichier_liste <- list.files(path = donnée, pattern = "*.csv", full.names = TRUE) %>%
+    lapply(read.csv) %>%
+    bind_rows() %>%
+    mutate(date = as.Date(date)) %>%
+    filter(date >= as.Date(start_date) & date <= as.Date(end_date)) 
+}
+
+donnée <- "C:/Users/BELLO/Documents/Programmation automatisée/Exam/exam_data" 
+vente_data <- compile(donnée, start_date = "2020-01-01", end_date = "2024-12-31")
+head(vente_data,30)
+
+```
+
+
+### 2-  Visualisons les données de ventes avec ggplot2 et choisissons la visualisation qui montre le mieux l’évolution des ventes entre 2020-01-01 et 2024-12-31.
+
+```{r,warning=FALSE,message=FALSE}
+library(ggplot2)
+
+vente_data %>%
+  filter(date >= as.Date("2020-01-01") & date <= as.Date("2024-12-31")) %>%
+  mutate(Year = year(date), Month = month(date, label = TRUE)) %>%
+  ggplot(aes(x = date, y = nb_de_ventes)) +
+  geom_line(color = "blue", size = 1) +
+  #geom_point(color = "green", size = 1.5) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%d-%b-%Y") +
+  labs(
+    title = "Evolution des ventes entre 01-01-2020 et 31-12-2024",
+    subtitle = "Une baisse marquée entre 2022 et 2023 suivie d'une remontée progressive",
+    x = "Date",
+    y = "Nombre de ventes"
+  )     +
+  geom_hline(yintercept = median(vente_data$nb_de_ventes, na.rm = TRUE), 
+           linetype = "dashed", color = "darkgreen") +
+annotate("text", x = as.Date("2021-06-01"), y = median(vente_data$nb_de_ventes, na.rm = TRUE) + 2, 
+         label = "Médiane des ventes", color = "darkgreen", size = 3) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5, size = 12)
+    
+  )
+
+```
+
